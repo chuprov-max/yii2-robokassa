@@ -4,6 +4,8 @@ namespace robokassa;
 
 use Yii;
 use yii\base\Object;
+use yii\helpers\Html;
+use yii\helpers\Json;
 
 class Merchant extends Object
 {
@@ -15,6 +17,21 @@ class Merchant extends Object
     public $isTest = false;
 
     public $baseUrl = 'https://auth.robokassa.ru/Merchant/Index.aspx';
+    
+    /**
+     * @var string the content enclosed within the button tag. It will NOT be HTML-encoded.
+     * Therefore you can pass in HTML code such as an image tag. If this is is coming from end users,
+     * you should consider [[encode()]] it to prevent XSS attacks.
+     */
+    public $submitButtonContent = 'Pay';
+    
+    /**
+     * @var array the tag options in terms of name-value pairs. These will be rendered as
+     * the attributes of the resulting tag for submit button. The values will be HTML-encoded using [[encode()]].
+     * If a value is null, the corresponding attribute will not be rendered. 
+     */
+    public $submitButtonOptions = [];    
+        
 
     public function payment($nOutSum, $nInvId, $sInvDesc = null, $sIncCurrLabel=null, $sEmail = null, $sCulture = null, $shp = [], $returnLink = false)
     {
@@ -48,6 +65,58 @@ class Merchant extends Object
         } else {
             return $url;
         }
+    }
+    
+    /**
+     * @param type $nOutSum
+     * @param type $nInvId
+     * @param type $sInvDesc
+     * @param type $sIncCurrLabel
+     * @param type $sEmail
+     * @param type $sCulture
+     * @param type $shp
+     * @param \robokassa\Receipt $receipt Receipt object to use `Robocheks`
+     * 
+     * @return string payment form to send POST request to $this->baseUrl
+     */
+    public function paymentPostForm($nOutSum, $nInvId, $sInvDesc = null, $sIncCurrLabel=null, $sEmail = null, $sCulture = null, $shp = [], Receipt $receipt = null)
+    {
+        Yii::$app->request->enableCsrfValidation = false;
+        
+        $signature = "{$this->sMerchantLogin}:{$nOutSum}:{$nInvId}";
+        
+        if ($receipt) {
+            $receiptJson = Json::encode($receipt);
+            $signature .= ":{$receiptJson}";
+        }
+        
+        $signature .= ":{$this->sMerchantPass1}";
+        
+        if (!empty($shp)) {
+            $signature .= ':' . $this->implodeShp($shp);
+        }
+        
+        $sSignatureValue = md5($signature);
+        
+        $form = Html::beginForm($this->baseUrl, 'post');
+        $form .= Html::hiddenInput('MrchLogin', $this->sMerchantLogin);
+        $form .= Html::hiddenInput('OutSum', $nOutSum);
+        $form .= Html::hiddenInput('InvId', $nInvId);
+        $form .= Html::hiddenInput('Desc', $sInvDesc);
+        $form .= Html::hiddenInput('SignatureValue', $sSignatureValue);
+        $form .= Html::hiddenInput('IncCurrLabel', $sIncCurrLabel);
+        $form .= Html::hiddenInput('Email', $sEmail);
+        $form .= Html::hiddenInput('Culture', $sCulture);
+        $form .= Html::hiddenInput('IsTest', (int)$this->isTest);
+        
+        if ($receipt && $receiptJson) {
+            $form .= Html::hiddenInput('Receipt', urlencode($receiptJson));
+        }
+        
+        $form .= Html::submitButton($this->submitButtonContent, $this->submitButtonOptions);
+        
+        $form .= Html::endForm();
+        return $form;
     }
 
     private function implodeShp($shp)
