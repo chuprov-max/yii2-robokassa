@@ -86,8 +86,8 @@ class Merchant extends Object
         $signature = "{$this->sMerchantLogin}:{$nOutSum}:{$nInvId}";
         
         if ($receipt) {
-            $receiptJson = Json::encode($receipt);
-            $signature .= ":{$receiptJson}";
+            $receiptJsonUrlEncoded = urlencode(Json::encode($receipt));
+            $signature .= ":{$receiptJsonUrlEncoded}";
         }
         
         $signature .= ":{$this->sMerchantPass1}";
@@ -109,8 +109,8 @@ class Merchant extends Object
         $form .= Html::hiddenInput('Culture', $sCulture);
         $form .= Html::hiddenInput('IsTest', (int)$this->isTest);
         
-        if ($receipt && $receiptJson) {
-            $form .= Html::hiddenInput('Receipt', urlencode($receiptJson));
+        if ($receipt && $receiptJsonUrlEncoded) {
+            $form .= Html::hiddenInput('Receipt', $receiptJsonUrlEncoded);
         }
         
         $form .= Html::submitButton($this->submitButtonContent, $this->submitButtonOptions);
