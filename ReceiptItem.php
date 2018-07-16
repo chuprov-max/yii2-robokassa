@@ -2,6 +2,8 @@
 
 namespace robokassa;
 
+use yii\helpers\StringHelper;
+
 class ReceiptItem
 {
     const TAX_NONE = 'none';
@@ -33,7 +35,8 @@ class ReceiptItem
     
     public function __construct($name, $sum, $quantity, $tax)
     {
-        $this->name = $name;
+        $nameWithoutQuotes = str_replace('"', "", $name);
+        $this->name = StringHelper::truncate(htmlspecialchars($nameWithoutQuotes), 64, '');
         $this->sum = $sum;
         $this->quantity = $quantity;
         $this->tax = $tax;
