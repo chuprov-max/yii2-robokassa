@@ -31,6 +31,8 @@ class Merchant extends Object
      * If a value is null, the corresponding attribute will not be rendered. 
      */
     public $submitButtonOptions = [];    
+    
+    public $encoding = 'utf-8';
         
 
     public function payment($nOutSum, $nInvId, $sInvDesc = null, $sIncCurrLabel=null, $sEmail = null, $sCulture = null, $shp = [], $returnLink = false)
@@ -53,6 +55,7 @@ class Merchant extends Object
             'Email' => $sEmail,
             'Culture' => $sCulture,
             'IsTest' => (int)$this->isTest,
+            'Encoding' => $this->encoding,
         ]);
 
         if (!empty($shp) && ($query = http_build_query($shp)) !== '') {
@@ -108,6 +111,7 @@ class Merchant extends Object
         $form .= Html::hiddenInput('Email', $sEmail);
         $form .= Html::hiddenInput('Culture', $sCulture);
         $form .= Html::hiddenInput('IsTest', (int)$this->isTest);
+        $form .= Html::hiddenInput('Encoding', $this->encoding);
         
         if ($receipt && $receiptJsonUrlEncoded) {
             $form .= Html::hiddenInput('Receipt', $receiptJsonUrlEncoded);
