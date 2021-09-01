@@ -3,11 +3,11 @@
 namespace robokassa;
 
 use Yii;
-use yii\base\Object;
+use yii\base\BaseObject;
 use yii\helpers\Html;
 use yii\helpers\Json;
 
-class Merchant extends Object
+class Merchant extends BaseObject
 {
     public $sMerchantLogin;
 
