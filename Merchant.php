@@ -116,7 +116,17 @@ class Merchant extends BaseObject
         if ($receipt && $receiptJsonUrlEncoded) {
             $form .= Html::hiddenInput('Receipt', $receiptJsonUrlEncoded);
         }
-        
+
+        // Shp_* parameters are part of the signature, so Robokassa must receive them too,
+        // otherwise it rejects the signature. Same order as in implodeShp().
+        if (!empty($shp)) {
+            $sortedShp = $shp;
+            ksort($sortedShp);
+            foreach ($sortedShp as $key => $value) {
+                $form .= Html::hiddenInput($key, $value);
+            }
+        }
+
         $form .= Html::submitButton($this->submitButtonContent, $this->submitButtonOptions);
         
         $form .= Html::endForm();
